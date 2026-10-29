@@ -1540,6 +1540,28 @@ function show(id){
 }
 
 async function init(){
+  // Standalone Ads Manager route: /ads
+  if(window.location.pathname.replace(/\\/+$/, '')==='/ads'){
+    document.querySelectorAll('.screen').forEach(function(el){el.classList.remove('active');el.style.display='none';});
+    var adsPage=document.getElementById('ads-manager-modal');
+    if(adsPage){
+      adsPage.style.display='block';
+      adsPage.style.position='relative';
+      adsPage.style.inset='auto';
+      adsPage.style.minHeight='100vh';
+      adsPage.style.background='#f8fafc';
+      adsPage.style.padding='28px 18px';
+      adsPage.style.overflow='auto';
+      adsPage.style.zIndex='1';
+      var adsSection=adsPage.querySelector('section');
+      if(adsSection){adsSection.style.maxWidth='760px';adsSection.style.margin='24px auto';adsSection.style.minHeight='calc(100vh - 100px)';}
+      var closeBtn=adsPage.querySelector('button[onclick="closeAdsManager()"]');
+      if(closeBtn)closeBtn.style.display='none';
+      openAdsManager();
+    }
+    S.initialized=true;
+    return;
+  }
   // Public menu: /menu/:slug route or ?m=slug param
   var pathParts=window.location.pathname.split('/');
   var mSlug=(pathParts[1]==='menu'&&pathParts[2])?pathParts[2]:new URLSearchParams(window.location.search).get('m');
