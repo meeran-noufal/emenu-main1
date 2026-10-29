@@ -3219,6 +3219,7 @@ function renderPubMenu(){
     document.getElementById('s-menu-fullpage').style.display='block';
     document.getElementById('pub-menu-full').innerHTML=buildFullPageMenu(d,t);
      initPublicCategoryNav();
+     initTodaySpecialAd();
   } else {
     document.getElementById('s-menu-preview').style.display='';
     document.getElementById('s-menu-fullpage').style.display='none';
@@ -3264,6 +3265,50 @@ function initPublicCategoryNav(){
     };
   });
   updateActive();
+}
+
+function initTodaySpecialAd(){
+  // Demo promotion for public QR menus. The customer can reopen it from the
+  // floating offer button after the first 10-second display has closed.
+  var existing=document.getElementById('today-special-ad');
+  var existingButton=document.getElementById('today-special-ad-button');
+  if(existing) existing.remove();
+  if(existingButton) existingButton.remove();
+  var styleId='today-special-ad-styles';
+  if(!document.getElementById(styleId)){
+    var style=document.createElement('style');
+    style.id=styleId;
+    style.textContent='
+      #today-special-ad{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:10000;width:min(520px,calc(100vw - 28px));padding:18px 48px 18px 18px;border-radius:18px;background:linear-gradient(135deg,#fff7ed,#ffedd5);border:1px solid #fed7aa;box-shadow:0 18px 55px rgba(124,45,18,.24);color:#431407;font-family:Inter,Arial,sans-serif;animation:todayAdIn .35s ease}
+      #today-special-ad[hidden]{display:none}
+      #today-special-ad .tsa-kicker{font-size:11px;font-weight:900;letter-spacing:.13em;text-transform:uppercase;color:#c2410c;margin-bottom:5px}
+      #today-special-ad .tsa-title{font-size:20px;line-height:1.2;font-weight:900;margin:0 0 7px}
+      #today-special-ad .tsa-items{font-size:13px;line-height:1.5;color:#7c2d12;margin:0}
+      #today-special-ad .tsa-close{position:absolute;right:10px;top:10px;width:30px;height:30px;border:0;border-radius:50%;background:rgba(124,45,18,.09);color:#7c2d12;font-size:20px;cursor:pointer}
+      #today-special-ad-button{position:fixed;right:16px;top:16px;z-index:9999;display:flex;align-items:center;gap:7px;border:0;border-radius:999px;padding:11px 14px;background:#c2410c;color:#fff;box-shadow:0 6px 20px rgba(194,65,12,.28);font:800 12px Inter,Arial,sans-serif;cursor:pointer}
+      #today-special-ad-button .tsa-icon{font-size:17px;line-height:1}
+      @keyframes todayAdIn{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}
+      @media(max-width:480px){#today-special-ad{bottom:12px;padding:16px 44px 16px 15px}#today-special-ad .tsa-title{font-size:18px}#today-special-ad-button{right:10px;top:10px;padding:10px 12px}}
+    ';
+    document.head.appendChild(style);
+  }
+  var button=document.createElement('button');
+  button.id='today-special-ad-button';
+  button.type='button';
+  button.setAttribute('aria-label','Show today special offers');
+  button.innerHTML='<span class="tsa-icon" aria-hidden="true">🔥</span><span>Today Special</span>';
+  var ad=document.createElement('aside');
+  ad.id='today-special-ad';
+  ad.setAttribute('aria-label','Today special promotion');
+  ad.innerHTML='<button type="button" class="tsa-close" aria-label="Close promotion">×</button><div class="tsa-kicker">🔥 Today Special</div><h2 class="tsa-title">Fresh picks at Aifa Cafe</h2><p class="tsa-items">🍔 Sharjah Burger &nbsp; • &nbsp; 🥪 Sandwich &nbsp; • &nbsp; 🍳 Bread Omelette</p>';
+  document.body.appendChild(button);
+  document.body.appendChild(ad);
+  var hideTimer;
+  function hideAd(){ad.hidden=true;if(hideTimer){clearTimeout(hideTimer);hideTimer=null;}}
+  function showAd(){ad.hidden=false;if(hideTimer) clearTimeout(hideTimer);hideTimer=setTimeout(hideAd,10000);}
+  ad.querySelector('.tsa-close').addEventListener('click',hideAd);
+  button.addEventListener('click',showAd);
+  showAd();
 }
 
 function buildFullPageMenu(d,t){
