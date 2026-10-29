@@ -821,6 +821,19 @@ body{font-family:'Inter',sans-serif;color:#111;background:#f8fafc;-webkit-font-s
   </div>
 </div>
 
+<div id="ads-manager-modal" style="display:none;position:fixed;inset:0;z-index:20000;background:rgba(15,23,42,.62);padding:18px;overflow:auto;font-family:Inter,sans-serif">
+<section style="max-width:620px;margin:5vh auto;background:#fff;border-radius:22px;padding:26px;box-shadow:0 24px 70px rgba(0,0,0,.25)">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px"><h2 style="font-size:1.45rem;font-weight:900;color:#0f3b68">📣 Ads Manager</h2><button type="button" class="btn btn-ghost btn-sm" onclick="closeAdsManager()">✕ Close</button></div>
+<p style="color:#64748b;font-size:.88rem;line-height:1.6;margin-bottom:20px">Create a promotion for customers opening your public QR menu. It appears for 10 seconds, can be closed early, and can be reopened using the floating offer icon.</p>
+<div class="ig"><label>Promotion type</label><select id="ads-type" onchange="adsTypeChanged()"><option value="special">🔥 Today Special</option><option value="combo">🎁 Today Combo Offer</option></select></div>
+<div class="ig"><label>Heading</label><input id="ads-title" maxlength="90" placeholder="Fresh picks at Aifa Cafe"></div>
+<div class="ig"><label>Offer items / details</label><textarea id="ads-items" maxlength="260" rows="3" placeholder="Sharjah Burger • Sandwich • Bread Omelette"></textarea></div>
+<label style="display:flex;align-items:center;gap:10px;font-weight:700;margin:8px 0 18px;color:#334155"><input type="checkbox" id="ads-enabled" style="width:18px;height:18px"> Show this ad on public QR menu</label>
+<div style="display:flex;gap:10px;flex-wrap:wrap"><button type="button" class="btn btn-primary" onclick="saveAdsSettings()">Save Ad</button><button type="button" class="btn btn-outline" onclick="previewAdsSettings()">Preview Ad</button><button type="button" class="btn btn-ghost" onclick="resetAdsSettings()">Reset demo</button></div>
+<p id="ads-save-status" style="font-size:.82rem;color:#0f766e;margin-top:14px"></p>
+<p style="font-size:.75rem;color:#94a3b8;line-height:1.5;margin-top:10px">These settings are saved in this browser only for this local demo; they are not synced to the server or other devices.</p>
+</section></div>
+
 <!-- ═══════════════════════════════════════
      DASHBOARD
 ════════════════════════════════════════ -->
@@ -852,6 +865,10 @@ body{font-family:'Inter',sans-serif;color:#111;background:#f8fafc;-webkit-font-s
         <button class="nav-item" onclick="tab('today',this)" id="nav-today">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           Today's Menu
+        </button>
+        <button class="nav-item" id="nav-ads" onclick="openAdsManager()">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a2 2 0 002 2h2l3 5h3l-2-5 7-3V8L8 5H5a2 2 0 00-2 2v4z"/><path d="M17 9l4-2v10l-4-2"/></svg>
+          Ads
         </button>
         <div class="nav-label" style="margin-top:6px">Account</div>
         <button class="nav-item" onclick="tab('settings',this)">
@@ -3219,6 +3236,7 @@ function renderPubMenu(){
     document.getElementById('s-menu-fullpage').style.display='block';
     document.getElementById('pub-menu-full').innerHTML=buildFullPageMenu(d,t);
      initPublicCategoryNav();
+     initTodaySpecialAd();
   } else {
     document.getElementById('s-menu-preview').style.display='';
     document.getElementById('s-menu-fullpage').style.display='none';
@@ -3264,6 +3282,57 @@ function initPublicCategoryNav(){
     };
   });
   updateActive();
+}
+
+function getAdsSettings(){
+  var defaults={type:'special',title:'Fresh picks at Aifa Cafe',items:'🍔 Sharjah Burger • 🥪 Sandwich • 🍳 Bread Omelette',enabled:true};
+  try{return Object.assign(defaults,JSON.parse(localStorage.getItem('emenuAdsSettings')||'{}'));}catch(e){return defaults;}
+}
+function saveAdsSettings(){
+  var c={type:document.getElementById('ads-type').value,title:document.getElementById('ads-title').value.trim(),items:document.getElementById('ads-items').value.trim(),enabled:document.getElementById('ads-enabled').checked};
+  if(!c.title||!c.items){document.getElementById('ads-save-status').textContent='Please enter both heading and offer details.';return;}
+  localStorage.setItem('emenuAdsSettings',JSON.stringify(c));
+  document.getElementById('ads-save-status').textContent='Saved in this browser. Open your public QR menu on this same browser to test.';
+  toast('Ad settings saved','success');
+}
+function adsTypeChanged(){
+  var type=document.getElementById('ads-type').value, title=document.getElementById('ads-title');
+  if(type==='combo'&&title.value==='Fresh picks at Aifa Cafe') title.value='Today Combo Offer';
+  if(type==='special'&&title.value==='Today Combo Offer') title.value='Fresh picks at Aifa Cafe';
+}
+function openAdsManager(){
+  var c=getAdsSettings();
+  document.getElementById('ads-type').value=c.type||'special';
+  document.getElementById('ads-title').value=c.title||'';
+  document.getElementById('ads-items').value=c.items||'';
+  document.getElementById('ads-enabled').checked=!!c.enabled;
+  document.getElementById('ads-save-status').textContent='';
+  document.getElementById('ads-manager-modal').style.display='block';
+}
+function closeAdsManager(){document.getElementById('ads-manager-modal').style.display='none';}
+function resetAdsSettings(){
+  localStorage.setItem('emenuAdsSettings',JSON.stringify({type:'special',title:'Fresh picks at Aifa Cafe',items:'🍔 Sharjah Burger • 🥪 Sandwich • 🍳 Bread Omelette',enabled:true}));
+  openAdsManager();document.getElementById('ads-save-status').textContent='Demo promotion restored.';
+}
+function previewAdsSettings(){saveAdsSettings();initTodaySpecialAd(true);}
+function initTodaySpecialAd(forcePreview){
+  var c=getAdsSettings();if(!c.enabled&&!forcePreview)return;
+  var old=document.getElementById('today-special-ad'),oldBtn=document.getElementById('today-special-ad-button');
+  if(old)old.remove();if(oldBtn)oldBtn.remove();
+  if(!document.getElementById('today-special-ad-styles')){
+    var st=document.createElement('style');st.id='today-special-ad-styles';
+    st.textContent='#today-special-ad{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:10000;width:min(520px,calc(100vw - 28px));padding:18px 48px 18px 18px;border-radius:18px;background:linear-gradient(135deg,#fff7ed,#ffedd5);border:1px solid #fed7aa;box-shadow:0 18px 55px rgba(124,45,18,.24);color:#431407;font-family:Inter,Arial,sans-serif;animation:todayAdIn .35s ease}#today-special-ad[hidden]{display:none}#today-special-ad .tsa-kicker{font-size:11px;font-weight:900;letter-spacing:.13em;text-transform:uppercase;color:#c2410c;margin-bottom:5px}#today-special-ad .tsa-title{font-size:20px;line-height:1.2;font-weight:900;margin:0 0 7px}#today-special-ad .tsa-items{font-size:13px;line-height:1.5;color:#7c2d12;margin:0;white-space:pre-line}#today-special-ad .tsa-close{position:absolute;right:10px;top:10px;width:30px;height:30px;border:0;border-radius:50%;background:rgba(124,45,18,.09);color:#7c2d12;font-size:20px;cursor:pointer}#today-special-ad-button{position:fixed;right:16px;top:16px;z-index:9999;display:flex;align-items:center;gap:7px;border:0;border-radius:999px;padding:11px 14px;background:#c2410c;color:#fff;box-shadow:0 6px 20px rgba(194,65,12,.28);font:800 12px Inter,Arial,sans-serif;cursor:pointer}#today-special-ad-button .tsa-icon{font-size:17px;line-height:1}@keyframes todayAdIn{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}@media(max-width:480px){#today-special-ad{bottom:12px;padding:16px 44px 16px 15px}#today-special-ad .tsa-title{font-size:18px}#today-special-ad-button{right:10px;top:10px;padding:10px 12px}}';
+    document.head.appendChild(st);
+  }
+  function esc(v){return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  var btn=document.createElement('button');btn.id='today-special-ad-button';btn.type='button';btn.setAttribute('aria-label','Show promotion');
+  btn.innerHTML='<span class="tsa-icon">'+(c.type==='combo'?'🎁':'🔥')+'</span><span>'+(c.type==='combo'?'Combo Offer':'Today Special')+'</span>';
+  var ad=document.createElement('aside');ad.id='today-special-ad';ad.setAttribute('aria-label','Promotion');
+  ad.innerHTML='<button type="button" class="tsa-close" aria-label="Close promotion">×</button><div class="tsa-kicker">'+(c.type==='combo'?'🎁 Today Combo Offer':'🔥 Today Special')+'</div><h2 class="tsa-title">'+esc(c.title)+'</h2><p class="tsa-items">'+esc(c.items)+'</p>';
+  document.body.appendChild(btn);document.body.appendChild(ad);var timer;
+  function hide(){ad.hidden=true;if(timer){clearTimeout(timer);timer=null;}}
+  function show(){ad.hidden=false;if(timer)clearTimeout(timer);timer=setTimeout(hide,10000);}
+  ad.querySelector('.tsa-close').addEventListener('click',hide);btn.addEventListener('click',show);show();
 }
 
 function buildFullPageMenu(d,t){
