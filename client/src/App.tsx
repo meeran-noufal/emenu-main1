@@ -55,9 +55,6 @@ export default function App() {
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-      {/* Public menu view (customer-facing) */}
-      <Route path="/menu/:slug" element={<div>Menu View — Coming Soon</div>} />
-
       {/* Template Picker — protected onboarding step */}
       <Route path="/onboarding/template" element={<ProtectedRoute><TemplatePickerPage /></ProtectedRoute>} />
 
