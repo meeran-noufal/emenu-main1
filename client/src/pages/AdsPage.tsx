@@ -10,42 +10,8 @@ export default function AdsPage(){
  const [ad,setAd]=useState<Ad>(()=>({...empty,...(readAd()??{})}))
  const [message,setMessage]=useState('')
  const update=(k:keyof Ad,v:string|boolean)=>{setAd(a=>({...a,[k]:v}));setMessage('')}
- function readImage(e:ChangeEvent<HTMLInputElement>,key:'image'|'reviewQrImage'){const f=e.target.files?.[0];if(!f)return;if(!f.type.startsWith('image/')){setMessage('Please choose an image file.');return}if(f.size>2*1024*1024){setMessage('Image must be under 2 MB.');return}const reader=new FileReader();reader.onload=()=>update(key,String(reader.result));reader.readAsDataURL(f)}
- async function scanReviewQr(e:ChangeEvent<HTMLInputElement>){
-  const file=e.target.files?.[0]; if(!file)return
-  if(file.size>10*1024*1024){setMessage('QR image must be under 10 MB.');return}
-  if(!file.type.startsWith('image/')){setMessage('Please choose an image file.');return}
-  try{
-   // Compress large phone screenshots/photos before localStorage; otherwise its ~5 MB
-   // quota silently prevents the QR from being saved for the customer page.
-   const imageData=await new Promise<string>((resolve,reject)=>{
-    const reader=new FileReader()
-    reader.onerror=()=>reject(new Error('Could not read the selected image.'))
-    reader.onload=()=>resolve(String(reader.result))
-    reader.readAsDataURL(file)
-   })
-   const img=await new Promise<HTMLImageElement>((resolve,reject)=>{
-    const el=new Image()
-    el.onload=()=>resolve(el)
-    el.onerror=()=>reject(new Error('Could not decode the selected image.'))
-    el.src=imageData
-   })
-   const maxSide=1400, scale=Math.min(1,maxSide/Math.max(img.naturalWidth,img.naturalHeight))
-   const canvas=document.createElement('canvas')
-   canvas.width=Math.max(1,Math.round(img.naturalWidth*scale))
-   canvas.height=Math.max(1,Math.round(img.naturalHeight*scale))
-   const ctx=canvas.getContext('2d')
-   if(!ctx) throw new Error('Image processing is unavailable in this browser.')
-   ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height)
-   ctx.drawImage(img,0,0,canvas.width,canvas.height)
-   const compressed=canvas.toDataURL('image/png')
-   setAd(a=>({...a,reviewQrImage:compressed,reviewMode:'qr'}))
-   setMessage('QR image added. Click Save ad to publish it to the customer preview.')
-   // QR decoding is intentionally optional. The uploaded image itself is
-   // displayed in the preview and customer ad; customers scan it with their phone.
-
-  }catch(err){setMessage(err instanceof Error?err.message:'Could not process this QR image.')}
- }
+ function readImage(e:ChangeEvent<HTMLInputElement>,key:'image'|'reviewQrImage'){const file=e.target.files?.[0];if(!file)return;if(!file.type.startsWith('image/')){setMessage('Please choose a valid image file (PNG, JPG or WebP).');e.target.value='';return}if(file.size>1.5*1024*1024){setMessage('Please choose an image smaller than 1.5 MB so it can be saved and shown on the customer ad.');e.target.value='';return}const reader=new FileReader();reader.onerror=()=>setMessage('Could not read this image. Please choose it again.');reader.onload=()=>{const data=String(reader.result||'');if(!data.startsWith('data:image/')){setMessage('This file is not a supported image.');return}setAd(a=>({...a,[key]:data,...(key==='reviewQrImage'?{reviewMode:'qr' as const}:{})}));setMessage(key==='reviewQrImage'?'QR image preview updated. Click Save ad to show it to customers.':'Ad image preview updated.')};reader.readAsDataURL(file)}
+ function scanReviewQr(e:ChangeEvent<HTMLInputElement>){readImage(e,'reviewQrImage')}
  function save(e:FormEvent){e.preventDefault();try{localStorage.setItem(KEY,JSON.stringify(ad));setMessage('Ad saved in this browser. Customer preview: /customer-ad/demo')}catch{setMessage('Storage full. Choose a smaller image.')}}
  const isReview=ad.title==='Google Review'
  return <main className="min-h-screen bg-slate-100 p-4 text-slate-900 sm:p-6 lg:p-8"><div className="mx-auto max-w-6xl">
