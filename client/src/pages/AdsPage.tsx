@@ -30,7 +30,7 @@ export default function AdsPage(){
     el.onerror=()=>reject(new Error('Could not decode the selected image.'))
     el.src=imageData
    })
-   const maxSide=1600, scale=Math.min(1,maxSide/Math.max(img.naturalWidth,img.naturalHeight))
+   const maxSide=1400, scale=Math.min(1,maxSide/Math.max(img.naturalWidth,img.naturalHeight))
    const canvas=document.createElement('canvas')
    canvas.width=Math.max(1,Math.round(img.naturalWidth*scale))
    canvas.height=Math.max(1,Math.round(img.naturalHeight*scale))
@@ -38,7 +38,7 @@ export default function AdsPage(){
    if(!ctx) throw new Error('Image processing is unavailable in this browser.')
    ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height)
    ctx.drawImage(img,0,0,canvas.width,canvas.height)
-   const compressed=canvas.toDataURL('image/jpeg',0.88)
+   const compressed=canvas.toDataURL('image/png')
    setAd(a=>({...a,reviewQrImage:compressed,reviewMode:'qr'}))
    setMessage('QR image added. Click Save ad to publish it to the customer preview.')
    try{
