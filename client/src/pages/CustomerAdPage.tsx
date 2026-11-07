@@ -42,7 +42,7 @@ export default function CustomerAdPage() {
       <X size={18}/> Close
     </button>
     <section className="w-full max-w-xl overflow-hidden rounded-3xl bg-white text-slate-900 shadow-2xl">
-      {ad?.image ? <img src={ad.image} alt={ad.title} className="h-64 w-full object-cover sm:h-80"/> : <div className="flex h-64 items-center justify-center bg-gradient-to-br from-teal-700 to-emerald-400 text-white sm:h-80"><Star size={64}/></div>}
+      {ad?.title === 'Google Review' && ad.reviewQrImage ? <div className="flex min-h-64 items-center justify-center bg-white p-6 sm:min-h-80"><img src={ad.reviewQrImage} alt="Google Review QR code - scan to leave a review" className="max-h-80 w-auto max-w-full object-contain"/></div> : ad?.image ? <img src={ad.image} alt={ad.title} className="h-64 w-full object-cover sm:h-80"/> : <div className="flex h-64 items-center justify-center bg-gradient-to-br from-teal-700 to-emerald-400 text-white sm:h-80"><Star size={64}/></div>}
       <div className="p-7 sm:p-9">
         <p className="text-sm font-extrabold uppercase tracking-[0.2em] text-orange-600">{ad?.title === 'Google Review' ? 'We value your feedback' : 'Special promotion'}</p>
         <h1 className="mt-3 break-words text-3xl font-black sm:text-4xl">{ad?.title === 'Google Review' ? (ad.restaurantName || 'Google Review') : ad?.title}</h1>
