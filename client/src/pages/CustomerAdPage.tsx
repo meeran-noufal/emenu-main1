@@ -1,17 +1,19 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ArrowRight, Megaphone, Star, X } from 'lucide-react'
 import { readAd } from '@/pages/AdsPage'
 
 export default function CustomerAdPage() {
   const { slug = 'demo' } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
+  const isReopen = Boolean((location.state as { reopen?: boolean } | null)?.reopen)
   const [ad] = useState(() => readAd())
-  const [seconds, setSeconds] = useState(6)
+  const [seconds, setSeconds] = useState(7)
   const hasActiveAd = Boolean(ad?.enabled)
 
   useEffect(() => {
-    if (!hasActiveAd) return
+    if (!hasActiveAd || isReopen) return
     const started = Date.now()
     const interval = window.setInterval(() => {
       const remaining = Math.max(0, 6 - Math.floor((Date.now() - started) / 1000))
@@ -19,7 +21,7 @@ export default function CustomerAdPage() {
       if (remaining === 0) navigate(`/menu/${slug}`, { replace: true })
     }, 200)
     return () => window.clearInterval(interval)
-  }, [hasActiveAd, navigate, slug])
+  }, [hasActiveAd, isReopen, navigate, slug])
 
   if (!hasActiveAd) {
     return (
@@ -49,7 +51,7 @@ export default function CustomerAdPage() {
           ? <a href={ad.reviewUrl} target="_blank" rel="noreferrer" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-teal-700 px-6 py-3 font-bold text-white">Write a Google Review <ArrowRight size={18}/></a>
           : <p className="mt-6 text-4xl font-black text-teal-800">₹{ad?.price}</p>}
         <div className="mt-7 flex items-center justify-between gap-3 border-t pt-5">
-          <span className="text-sm text-slate-500">Menu opens in {seconds}s</span>
+          {!isReopen && <span className="text-sm text-slate-500">Menu opens in {seconds}s</span>}
           <button onClick={() => navigate(`/menu/${slug}`)} className="rounded-xl bg-slate-900 px-5 py-3 font-bold text-white">Continue to menu <ArrowRight className="ml-1 inline" size={17}/></button>
         </div>
       </div>
