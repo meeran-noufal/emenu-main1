@@ -46,9 +46,9 @@ export default function CustomerAdPage() {
       <div className="p-7 sm:p-9">
         <p className="text-sm font-extrabold uppercase tracking-[0.2em] text-orange-600">{ad?.title === 'Google Review' ? 'We value your feedback' : 'Special promotion'}</p>
         <h1 className="mt-3 break-words text-3xl font-black sm:text-4xl">{ad?.title === 'Google Review' ? (ad.restaurantName || 'Google Review') : ad?.title}</h1>
-        <p className="mt-3 break-words text-lg leading-relaxed text-slate-600">{ad?.description}</p>
+        {ad?.title === 'Google Review' ? <p className="mt-3 break-words text-lg leading-relaxed text-slate-600">Enjoyed your visit to {ad.restaurantName || 'our restaurant'}? We’d love to hear from you! Scan the QR code below to share your experience on Google.</p> : <p className="mt-3 break-words text-lg leading-relaxed text-slate-600">{ad?.description}</p>}
         {ad?.title === 'Google Review'
-          ? <div className="mt-6 flex flex-col items-center gap-4">{ad.reviewQrImage && <img src={ad.reviewQrImage} alt="Scan to review this restaurant on Google" className="max-h-64 w-auto rounded-xl border border-slate-200 object-contain"/>}<a href={ad.reviewUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-teal-700 px-6 py-3 font-bold text-white">Write a Google Review <ArrowRight size={18}/></a></div>
+          ? <div className="mt-6 flex flex-col items-center gap-4">{ad.reviewQrImage && <img src={ad.reviewQrImage} alt="Scan to review this restaurant on Google" className="max-h-64 w-auto rounded-xl border border-slate-200 object-contain"/>}{ad.reviewUrl && <a href={ad.reviewUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-teal-700 px-6 py-3 font-bold text-white">Write a Google Review <ArrowRight size={18}/></a>}</div>
           : <p className="mt-6 text-4xl font-black text-teal-800">₹{ad?.price}</p>}
         <div className="mt-7 flex items-center justify-between gap-3 border-t pt-5">
           {!isReopen && <span className="text-sm text-slate-500">Menu opens in {seconds}s</span>}
