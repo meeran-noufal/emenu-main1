@@ -11,6 +11,7 @@ import TemplatePickerPage from '@/pages/TemplatePickerPage'
 
 import AdsPage from '@/pages/AdsPage'
 import PublicMenuPage from '@/pages/PublicMenuPage'
+import CustomerAdPage from '@/pages/CustomerAdPage'
 
 // Bug fix: Route guards use useAuthStore directly (read-only) instead of useAuth().
 // useAuth() triggers verifySession() as a side-effect — calling it in multiple
@@ -47,6 +48,7 @@ export default function App() {
       {/* Public */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/ads" element={<AdsPage />} />
+      <Route path="/customer-ad/:slug" element={<CustomerAdPage />} />
       <Route path="/menu/:slug" element={<PublicMenuPage />} />
 
       {/* Auth — redirect to dashboard if already logged in */}
