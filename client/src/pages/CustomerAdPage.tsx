@@ -9,7 +9,7 @@ export default function CustomerAdPage() {
   const location = useLocation()
   const isReopen = Boolean((location.state as { reopen?: boolean } | null)?.reopen)
   const [ad] = useState(() => readAd())
-  const [seconds, setSeconds] = useState(7)
+  const [seconds, setSeconds] = useState(6)
   const hasActiveAd = Boolean(ad?.enabled)
 
   useEffect(() => {
