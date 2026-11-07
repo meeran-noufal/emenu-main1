@@ -12,7 +12,7 @@ export default function PublicMenuPage() {
       <h2 className="text-xl font-bold">Menu items</h2>
       <p className="mt-2 text-slate-600">Customer menu preview. Connect this route to the restaurant's live menu data for production QR use.</p>
     </section>
-    <button aria-label="View advertisements" onClick={() => navigate(`/customer-ad/${slug}`)} className="fixed left-4 top-4 z-30 flex items-center gap-2 rounded-full bg-teal-700 px-4 py-3 text-sm font-bold text-white shadow-lg">
+    <button aria-label="View advertisements" onClick={() => navigate(`/customer-ad/${slug}`, { state: { reopen: true } })} className="fixed left-4 top-4 z-30 flex items-center gap-2 rounded-full bg-teal-700 px-4 py-3 text-sm font-bold text-white shadow-lg">
       <Megaphone size={18}/> Ads
     </button>
   </main>
