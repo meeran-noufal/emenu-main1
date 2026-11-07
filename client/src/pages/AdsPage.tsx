@@ -11,7 +11,7 @@ export default function AdsPage(){
  const [message,setMessage]=useState('')
  const update=(k:keyof Ad,v:string|boolean)=>{setAd(a=>({...a,[k]:v}));setMessage('')}
  function readImage(e:ChangeEvent<HTMLInputElement>,key:'image'|'reviewQrImage'){const f=e.target.files?.[0];if(!f)return;if(!f.type.startsWith('image/')){setMessage('Please choose an image file.');return}if(f.size>2*1024*1024){setMessage('Image must be under 2 MB.');return}const reader=new FileReader();reader.onload=()=>update(key,String(reader.result));reader.readAsDataURL(f)}
- async async function scanReviewQr(e:ChangeEvent<HTMLInputElement>){
+ async function scanReviewQr(e:ChangeEvent<HTMLInputElement>){
   const file=e.target.files?.[0]; if(!file)return
   if(file.size>10*1024*1024){setMessage('QR image must be under 10 MB.');return}
   if(!file.type.startsWith('image/')){setMessage('Please choose an image file.');return}
@@ -41,16 +41,9 @@ export default function AdsPage(){
    const compressed=canvas.toDataURL('image/png')
    setAd(a=>({...a,reviewQrImage:compressed,reviewMode:'qr'}))
    setMessage('QR image added. Click Save ad to publish it to the customer preview.')
-   try{
-    const Detector=(window as unknown as {BarcodeDetector?:new (o:{formats:string[]})=>{detect:(source:HTMLImageElement)=>Promise<Array<{rawValue:string}>>}}).BarcodeDetector
-    if(Detector){
-     const codes=await new Detector({formats:['qr_code']}).detect(img)
-     if(codes[0]?.rawValue && /^https?:\\/\\//i.test(codes[0].rawValue)){
-      setAd(a=>({...a,reviewQrImage:compressed,reviewMode:'qr',reviewUrl:codes[0].rawValue}))
-      setMessage('Google Review QR image added and its review link was detected. Click Save ad.')
-     }
-    }
-   }catch{/* The visible QR image can still be scanned by the customer's phone. */}
+   // QR decoding is intentionally optional. The uploaded image itself is
+   // displayed in the preview and customer ad; customers scan it with their phone.
+
   }catch(err){setMessage(err instanceof Error?err.message:'Could not process this QR image.')}
  }
  function save(e:FormEvent){e.preventDefault();try{localStorage.setItem(KEY,JSON.stringify(ad));setMessage('Ad saved in this browser. Customer preview: /customer-ad/demo')}catch{setMessage('Storage full. Choose a smaller image.')}}
@@ -62,7 +55,7 @@ export default function AdsPage(){
     <label className="block font-semibold">Ad type<select className="mt-2 w-full rounded-xl border p-3" value={ad.title} onChange={e=>update('title',e.target.value)}><option>Today Special</option><option>Today Combo Offer</option><option>Google Review</option></select></label>
     {isReview&&<><label className="block font-semibold"><Store className="mr-2 inline" size={18}/>Cafe / Restaurant name<input className="mt-2 w-full rounded-xl border p-3" value={ad.restaurantName} onChange={e=>update('restaurantName',e.target.value)} placeholder="e.g. Aifa Cafe"/></label>
      <div className="rounded-xl border p-3 sm:p-4"><p className="font-bold">Google Review destination</p><div className="mt-3 grid grid-cols-2 gap-2"><button type="button" onClick={()=>update('reviewMode','link')} className={`flex items-center justify-center gap-2 rounded-lg border p-3 text-sm font-semibold ${ad.reviewMode==='link'?'border-teal-700 bg-teal-50 text-teal-800':''}`}><Link2 size={17}/> Paste link</button><button type="button" onClick={()=>update('reviewMode','qr')} className={`flex items-center justify-center gap-2 rounded-lg border p-3 text-sm font-semibold ${ad.reviewMode==='qr'?'border-teal-700 bg-teal-50 text-teal-800':''}`}><QrCode size={17}/> Scan QR image</button></div>
-      {ad.reviewMode==='link'?<label className="mt-3 block text-sm font-semibold">Google Review URL<input required type="url" className="mt-2 w-full rounded-xl border p-3 font-normal" value={ad.reviewUrl} onChange={e=>update('reviewUrl',e.target.value)} placeholder="https://g.page/r/.../review"/></label>:<label className="mt-3 flex cursor-pointer flex-col items-center rounded-xl border-2 border-dashed p-5 text-center"><QrCode size={34}/><b className="mt-2">Upload Google Review QR image</b><span className="mt-1 text-xs text-slate-500">PNG/JPG, max 5 MB. QR link will be scanned.</span><input required={!ad.reviewUrl} className="mt-3 max-w-full text-sm" type="file" accept="image/*" onChange={scanReviewQr}/></label>}
+      {ad.reviewMode==='link'?<label className="mt-3 block text-sm font-semibold">Google Review URL<input required type="url" className="mt-2 w-full rounded-xl border p-3 font-normal" value={ad.reviewUrl} onChange={e=>update('reviewUrl',e.target.value)} placeholder="https://g.page/r/.../review"/></label>:<label className="mt-3 flex cursor-pointer flex-col items-center rounded-xl border-2 border-dashed p-5 text-center"><QrCode size={34}/><b className="mt-2">Upload Google Review QR image</b><span className="mt-1 text-xs text-slate-500">PNG/JPG. The QR image will appear in the ad; customers scan it with their phone.</span><input required={!ad.reviewUrl} className="mt-3 max-w-full text-sm" type="file" accept="image/*" onChange={scanReviewQr}/></label>}
       {ad.reviewUrl&&<p className="mt-3 break-all rounded-lg bg-emerald-50 p-3 text-xs text-emerald-800">Scanned / saved link: {ad.reviewUrl}</p>}
      </div></>}
     {!isReview&&<label className="block font-semibold">Description<textarea required rows={3} className="mt-2 w-full rounded-xl border p-3" value={ad.description} onChange={e=>update('description',e.target.value)} placeholder="Chicken burger + fries + drink"/></label>}
@@ -71,7 +64,7 @@ export default function AdsPage(){
     <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={ad.enabled} onChange={e=>update('enabled',e.target.checked)}/> Enable this advertisement</label>
     <div className="flex flex-wrap gap-3"><button className="rounded-xl bg-teal-700 px-5 py-3 font-bold text-white">Save ad</button><button type="button" className="flex items-center gap-2 rounded-xl border px-4 py-3" onClick={()=>{localStorage.removeItem(KEY);setAd(empty);setMessage('Ad removed.')}}><Trash2 size={17}/>Remove</button></div>
     {message&&<p role="status" className="break-words rounded-lg bg-teal-50 p-3 text-sm text-teal-900">{message}</p>}
-    <p className="text-xs leading-5 text-amber-800">Prototype: saved in this browser only. Cross-device QR customer ads require server/database integration. QR image scanning works in browsers that support BarcodeDetector (for example, current Chrome).</p>
+    <p className="text-xs leading-5 text-amber-800">QR image display does not depend on browser QR-scanning support. Customers can scan the displayed code using their phone camera. This prototype saves ads in this browser only.</p>
    </form>
    <section className="h-fit min-w-0 overflow-hidden rounded-2xl bg-white shadow-sm"><h2 className="p-5 text-lg font-bold">Customer ad preview</h2>{isReview&&ad.reviewQrImage?<img src={ad.reviewQrImage} alt="Google Review QR preview" className="mx-auto max-h-80 w-auto object-contain"/>:ad.image?<img src={ad.image} alt="Ad preview" className="max-h-80 w-full object-cover"/>:<div className="flex h-56 items-center justify-center bg-teal-50 text-teal-800"><ImagePlus size={44}/></div>}<div className="p-5 sm:p-6"><span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-800">{isReview?'GOOGLE REVIEW':'TODAY’S OFFER'}</span><h3 className="mt-3 break-words text-2xl font-extrabold">{isReview?(ad.restaurantName||'Your Restaurant'):ad.title}</h3>{isReview?<><p className="mt-2 text-slate-600">Thank you for visiting {ad.restaurantName||'our restaurant'}! Scan the QR code or tap below to share your experience.</p><a href={ad.reviewUrl||'#'} target="_blank" rel="noreferrer" className="mt-4 inline-flex rounded-xl bg-teal-700 px-5 py-3 font-bold text-white">Write a Google Review ↗</a></>:<><p className="mt-2 whitespace-pre-wrap break-words text-slate-600">{ad.description||'Ad description'}</p><p className="mt-4 text-3xl font-extrabold text-teal-800">₹{ad.price||'—'}</p></>}</div></section>
   </div>
