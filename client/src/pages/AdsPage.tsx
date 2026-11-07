@@ -14,19 +14,26 @@ export default function AdsPage(){
  async function scanReviewQr(e:ChangeEvent<HTMLInputElement>){
   const file=e.target.files?.[0]; if(!file)return
   if(file.size>5*1024*1024){setMessage('QR image must be under 5 MB.');return}
-  try{
-   const bitmap=await createImageBitmap(file)
-   const Detector=(window as unknown as {BarcodeDetector?:new (o:{formats:string[]})=>{detect:(source:ImageBitmap)=>Promise<Array<{rawValue:string}>>}}).BarcodeDetector
-   if(!Detector){setMessage('QR image scanning is not supported in this browser. Please use Chrome or enter the Google Review link.');return}
-   const detector=new Detector({formats:['qr_code']})
-   const codes=await detector.detect(bitmap)
-   if(!codes.length){setMessage('No QR code found. Try a clearer QR image.');return}
-   const value=codes[0].rawValue
-   if(!/^https?:\/\//i.test(value)){setMessage('The QR code does not contain a web link.');return}
-   const qrReader=new FileReader()
-   qrReader.onload=()=>{setAd(a=>({...a,reviewUrl:value,reviewQrImage:String(qrReader.result),reviewMode:'qr'}));setMessage('Google Review QR scanned and saved successfully.')}
-   qrReader.readAsDataURL(file)
-  }catch{setMessage('Could not scan this QR image. Try another clear image or enter the link manually.')}
+  if(!file.type.startsWith('image/')){setMessage('Please choose a QR image file.');return}
+  const reader=new FileReader()
+  reader.onload=async()=>{
+   const imageData=String(reader.result)
+   setAd(a=>({...a,reviewQrImage:imageData,reviewMode:'qr'}))
+   try{
+    const bitmap=await createImageBitmap(file)
+    const Detector=(window as unknown as {BarcodeDetector?:new (o:{formats:string[]})=>{detect:(source:ImageBitmap)=>Promise<Array<{rawValue:string}>>}}).BarcodeDetector
+    if(!Detector){setMessage('QR image uploaded and will appear in the customer ad. Paste the Google Review link too if you want the Write a Google Review button to open directly.');return}
+    const detector=new Detector({formats:['qr_code']})
+    const codes=await detector.detect(bitmap)
+    if(!codes.length){setMessage('QR image uploaded. No link could be read from it; customers can scan the displayed QR with their phone.');return}
+    const value=codes[0].rawValue
+    if(/^https?:\\/\\//i.test(value)){
+     setAd(a=>({...a,reviewUrl:value,reviewQrImage:imageData,reviewMode:'qr'}))
+     setMessage('Google Review QR uploaded and link detected successfully.')
+    }else setMessage('QR image uploaded, but it does not contain a web link.')
+   }catch{setMessage('QR image uploaded. Customers can scan the displayed QR with their phone. Add the review URL manually for the button.')}
+  }
+  reader.readAsDataURL(file)
  }
  function save(e:FormEvent){e.preventDefault();try{localStorage.setItem(KEY,JSON.stringify(ad));setMessage('Ad saved in this browser. Customer preview: /customer-ad/demo')}catch{setMessage('Storage full. Choose a smaller image.')}}
  const isReview=ad.title==='Google Review'
