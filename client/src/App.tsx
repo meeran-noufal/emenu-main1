@@ -9,6 +9,10 @@ import ResetPasswordPage from '@/pages/ResetPasswordPage'
 import DashboardPage from '@/pages/DashboardPage'
 import TemplatePickerPage from '@/pages/TemplatePickerPage'
 
+import AdsPage from '@/pages/AdsPage'
+import PublicMenuPage from '@/pages/PublicMenuPage'
+import CustomerAdPage from '@/pages/CustomerAdPage'
+
 // Bug fix: Route guards use useAuthStore directly (read-only) instead of useAuth().
 // useAuth() triggers verifySession() as a side-effect — calling it in multiple
 // components caused /api/auth/me to fire 2-3 times on every page load.
@@ -43,15 +47,15 @@ export default function App() {
     <Routes>
       {/* Public */}
       <Route path="/" element={<LandingPage />} />
+      <Route path="/ads" element={<AdsPage />} />
+      <Route path="/customer-ad/:slug" element={<CustomerAdPage />} />
+      <Route path="/menu/:slug" element={<PublicMenuPage />} />
 
       {/* Auth — redirect to dashboard if already logged in */}
       <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
       <Route path="/signup" element={<PublicOnlyRoute><SignupPage /></PublicOnlyRoute>} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
-
-      {/* Public menu view (customer-facing) */}
-      <Route path="/menu/:slug" element={<div>Menu View — Coming Soon</div>} />
 
       {/* Template Picker — protected onboarding step */}
       <Route path="/onboarding/template" element={<ProtectedRoute><TemplatePickerPage /></ProtectedRoute>} />
